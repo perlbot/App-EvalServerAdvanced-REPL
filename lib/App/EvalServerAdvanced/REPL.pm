@@ -11,6 +11,8 @@ use App::EvalServerAdvanced::Protocol;
 use Exporter 'import';
 our @EXPORT = qw/start_repl/;
 
+# ABSTRACT: Example client for App::EvalServerAdvanced
+
 sub fake_prompt {
     my $prompt = shift;
     my @rl_term_set = @Term::ReadLine::TermCap::rl_term_set;
