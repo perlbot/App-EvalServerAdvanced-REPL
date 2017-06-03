@@ -6,10 +6,15 @@ use Data::Dumper;
 use Term::ReadLine;
 use IO::Async::Loop;
 use IO::Async::Stream;
+use Encode;
+use utf8;
+use open qw/:std :utf8/;
 
 use App::EvalServerAdvanced::Protocol;
 use Exporter 'import';
 our @EXPORT = qw/start_repl/;
+
+our $VERSION = '0.003';
 
 # ABSTRACT: Example client for App::EvalServerAdvanced
 
@@ -57,9 +62,8 @@ sub start_repl {
                           print "\n"; # go to a new line
                           my $eseq = $message->sequence;  
                           if (!$message->{canceled}) {
-                              my $lines = $message->contents;
-                              $lines =~ s/^/$eseq < /gm;
-                              print $rl_term_set[3], $lines, "\n\n";
+                              my $lines = Encode::decode("utf8", $message->contents);
+                              print $rl_term_set[3], "$eseq < ", $lines,  "\n\n";
                               fake_prompt("$seq> ");
                           } else {
                               print $rl_term_set[3],"\n$eseq was canceled\n";
@@ -100,7 +104,17 @@ sub start_repl {
   my $lang = $args[0] // "perl";
 
   while (my $line = $term->readline("$seq> ")) {
-    my $eval = {language => $lang, sequence => $seq, prio => {pr_realtime => {}}, files => [{filename => "__code", contents => $line}, {filename => "mf.txt", contents=>"What did you just call me?"}]};
+    my $line_utf8 = eval {Encode::decode("utf8", $line)} // $line;  # Term::Readline for me doesn't do the decoding.
+
+    my $eval = {
+      language => $lang, 
+      sequence => $seq, 
+      prio => {pr_realtime => {}}, 
+      files => [
+        {filename => "__code", contents => Encode::encode("utf8", $line_utf8)}, 
+        ],
+      encoding => "utf8", 
+      };
 
     my $message = encode_message(eval => $eval);
     $seq++;
