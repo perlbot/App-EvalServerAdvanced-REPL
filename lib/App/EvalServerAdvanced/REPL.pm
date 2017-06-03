@@ -14,7 +14,7 @@ use App::EvalServerAdvanced::Protocol;
 use Exporter 'import';
 our @EXPORT = qw/start_repl/;
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 # ABSTRACT: Example client for App::EvalServerAdvanced
 
@@ -60,9 +60,10 @@ sub start_repl {
                       $|++;
                       if (ref($message) =~ /EvalResponse$/) {
                           print "\n"; # go to a new line
-                          my $eseq = $message->sequence;  
+                          my $eseq = $message->sequence;
+                          my $encoding = eval{$message->encoding} // "utf8";
                           if (!$message->{canceled}) {
-                              my $lines = Encode::decode("utf8", $message->contents);
+                              my $lines = Encode::decode($encoding, $message->contents);
                               print $rl_term_set[3], "$eseq < ", $lines,  "\n\n";
                               fake_prompt("$seq> ");
                           } else {
@@ -71,7 +72,9 @@ sub start_repl {
                           }
                       } elsif (ref($message) =~ /Warning$/) {
                           my $eseq = $message->sequence;
-                          print $rl_term_set[3],"\nWARN <$eseq> ", $message->message, "\n";
+                          my $encoding = eval {$message->message} // "utf8";
+                          my $warning = Encode::decode($encoding, $message->message);
+                          print $rl_term_set[3],"\nWARN <$eseq> ", $warning, "\n";
                           fake_prompt("$seq> ");
                       } else {
                           die "Unhandled message: ". Dumper($message);
@@ -111,10 +114,10 @@ sub start_repl {
       sequence => $seq, 
       prio => {pr_realtime => {}}, 
       files => [
-        {filename => "__code", contents => Encode::encode("utf8", $line_utf8)}, 
+        {filename => "__code", contents => Encode::encode("utf8", $line_utf8), encoding => "utf8"}, 
         ],
-      encoding => "utf8", 
-      };
+      encoding => "utf8",  # The encoding I want back, if possible
+    };
 
     my $message = encode_message(eval => $eval);
     $seq++;

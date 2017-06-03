@@ -1,3 +1,6 @@
+0.004 - June 3rd 2017
+  * Use the encoding as part of the protocol
+
 0.003 - June 2nd 2017
   * Fix encoding behavior in REPL
 
