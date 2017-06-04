@@ -71,7 +71,7 @@ sub start_repl {
                           }
                       } elsif (ref($message) =~ /Warning$/) {
                           my $eseq = $message->sequence;
-                          my $warning = $message->get_message;
+                          my $warning = $message->message;
                           print $rl_term_set[3],"\nWARN <$eseq> ", $warning, "\n";
                           fake_prompt("$seq> ");
                       } else {
@@ -112,7 +112,7 @@ sub start_repl {
       sequence => $seq, 
       prio => {pr_realtime => {}}, 
       files => [
-        {filename => "__code", contents => Encode::encode("utf8", $line_utf8), encoding => "utf8"}, 
+        {filename => "__code", contents => $line_utf8, encoding => "utf8"}, 
         ],
       encoding => "utf8",  # The encoding I want back, if possible
     };
