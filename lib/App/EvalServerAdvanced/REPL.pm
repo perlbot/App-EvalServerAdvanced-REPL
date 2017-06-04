@@ -61,9 +61,8 @@ sub start_repl {
                       if (ref($message) =~ /EvalResponse$/) {
                           print "\n"; # go to a new line
                           my $eseq = $message->sequence;
-                          my $encoding = eval{$message->encoding} // "utf8";
                           if (!$message->{canceled}) {
-                              my $lines = Encode::decode($encoding, $message->contents);
+                              my $lines = $message->get_contents;
                               print $rl_term_set[3], "$eseq < ", $lines,  "\n\n";
                               fake_prompt("$seq> ");
                           } else {
@@ -72,8 +71,7 @@ sub start_repl {
                           }
                       } elsif (ref($message) =~ /Warning$/) {
                           my $eseq = $message->sequence;
-                          my $encoding = eval {$message->message} // "utf8";
-                          my $warning = Encode::decode($encoding, $message->message);
+                          my $warning = $message->get_message;
                           print $rl_term_set[3],"\nWARN <$eseq> ", $warning, "\n";
                           fake_prompt("$seq> ");
                       } else {
