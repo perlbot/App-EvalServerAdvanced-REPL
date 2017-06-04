@@ -1,6 +1,3 @@
-0.005 - June 3rd 2017
-  * better handling of encoding and raw bytes.
-
 0.004 - June 3rd 2017
   * Use the encoding as part of the protocol
 
